@@ -75,21 +75,141 @@ const MainQueryType = new GraphQLObjectType({
     description: "Main Query",
     /**By adding object inside a parenthesis we don't need to return the object its automatically returns is */
     fields: () => ({
+        book: {
+            type: BookType,
+            description: "Data of a Book",
+            args: {
+                id: {
+                    type: GraphQLInt
+                }
+            },
+            resolve: (parent, args) => Books.find(books => books.id === args.id)
+        },
         books: {
-            type: GraphQLList(BookType),
+            type: new GraphQLList(BookType),
             description: "Lists of all Books",
             resolve: () => Books
         },
         authors: {
-            type: GraphQLList(AuthorType),
+            type: new GraphQLList(AuthorType),
             description: 'List of all authors',
             resolve: () => Authors,
-        }
+        },
+        author: {
+            type: AuthorType,
+            description: "Data of a Author",
+            args: {
+                id: {
+                    type: GraphQLInt
+                }
+            },
+            resolve: (parent, args) => Authors.find(author => author.id === args.id)
+        },
     })
 });
 
+/**Mutation  */
+const MainMutationType = new GraphQLObjectType({
+    name: 'Mutation',
+    description: 'Main Mutation',
+    fields: () => ({
+        addBooks: {
+            type: BookType,
+            description: 'Add Books',
+            args: {
+                name: {
+                    type: GraphQLNonNull(GraphQLString)
+                },
+                authorId : {
+                    type: GraphQLNonNull(GraphQLInt)
+                }
+            },
+            resolve: (parent, args) => {
+                const book = {
+                    id: Books.length + 1,
+                    name: args.name,
+                    authorId: args.authorId,
+                }
+                Books.push(book)
+                return book
+            }
+        },
+        updateBooks: {
+            type: BookType,
+            description: "Update Books",
+            args: {
+                id: {
+                    type: GraphQLNonNull(GraphQLInt)
+                },
+                name: {
+                    type: GraphQLString
+                },
+                authorId : {
+                    type: GraphQLInt
+                }
+            },
+            resolve: (parent, args) => {
+                const updateBook = Books.find(book => book.id === args.id);
+
+                if(args.name != undefined) updateBook.name = args.name;
+                
+                if(args.authorId != undefined) updateBook.authorId = args.authorId;
+
+                return updateBook;
+            }
+        },
+        addAuthors: {
+            type: AuthorType,
+            description: "Add Authors",
+            args: {
+                name: {
+                    type: GraphQLNonNull(GraphQLString)
+                },
+                age: {
+                    type: GraphQLNonNull(GraphQLInt)
+                }
+            },
+            resolve: (parent, args) => {
+                const author = {
+                    id: Authors.length + 1,
+                    name: args.name,
+                    age: args.age,
+                }
+                Authors.push(author)
+                return author
+            }
+        },
+        updateAuthors: {
+            type: AuthorType,
+            description: "update Authors",
+            args: {
+                id: {
+                    type: GraphQLNonNull(GraphQLInt)
+                },
+                name: {
+                    type: GraphQLString
+                },
+                age: {
+                    type: GraphQLInt
+                }
+            },
+            resolve: (parent, args) => {
+                const updateAuthor = Authors.find(author => author.id === args.id)
+                
+                if(args.name != undefined) updateAuthor.name = args.name;
+
+                if(args.age != undefined) updateAuthor.age = args.age;
+                
+                return updateAuthor
+            }
+        }
+    })
+})
+
+
 const schema = new GraphQLSchema({
-    query: MainQueryType
+    query: MainQueryType,
+    mutation: MainMutationType
 })
 
 
